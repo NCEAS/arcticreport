@@ -23,11 +23,11 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
 
     year <- paste(lubridate::year(from), lubridate::year(to), sep = "|")
 
-    paths <- dir(wd, full.names = TRUE) %>%
+    paths <- dir(system.file("extdata", package = "arcticreport"), full.names = TRUE) %>%
         grep(year, ., value = TRUE)
 
     if (is.null(paths) || any(is.na(paths)) || length(paths) == 0){
-        return(NA)
+      return(NA)
     }
 
     his <- lapply(paths, read.csv)
@@ -42,7 +42,7 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
 
     his <- dplyr::left_join(his_full, tickets, by = "ticket") %>%
         dplyr::filter(created >= from & created <= to)
-
+    
     return(nrow(his))
 
 }
@@ -51,7 +51,7 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
 #' @param path a path to write the ticket list to 
 #'
 #' @export
-update_ticket_list <- function(path = paste0(getwd(), "/ticket_list.csv")){
+update_ticket_list <- function(path = system.file("extdata", "ticket_list.csv", package = "arcticreport")){
     tics <- rt_ticket_search("Queue='arcticdata'",
                              orderby = "+Created",
                              format = "l",
@@ -62,6 +62,7 @@ update_ticket_list <- function(path = paste0(getwd(), "/ticket_list.csv")){
         mutate(Created = as.POSIXct(Created, format = "%b %d %H:%M:%S %Y"))
 
     #path <- system.file("extdata", , package = "arcticreport")
+    print(paste("THIS IS THE PATH", path))
     write.csv(tics_clean, path, row.names = F)
     return(NULL)
 }
@@ -125,7 +126,7 @@ parse_event <- function(x){
 #'
 #' @export
 #'
-update_annual_tix <- function(year, path = paste0(getwd(), "/ticket_list.csv")){
+update_annual_tix <- function(year, path = system.file("extdata", "ticket_list.csv", package = "arcticreport")){
     #path <- system.file("extdata", "ticket_list.csv", package = "arcticreport")
     tics_df <- read.csv(path)
 
@@ -139,7 +140,7 @@ update_annual_tix <- function(year, path = paste0(getwd(), "/ticket_list.csv")){
 
     his_df <- do.call(bind_rows, his)
 
-    fname <- paste("~/arcticreport/", year, "_ticket_events.csv")
+    fname <- paste0("~/arcticreport/inst/extdata/", year, "_ticket_events.csv")
    # path <- system.file("extdata", fname, package = "arcticreport")
 
     write.csv(his_df, fname, row.names = F)

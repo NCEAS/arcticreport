@@ -28,6 +28,7 @@ library(jsonlite)
 library(rt)
 library(lubridate)
 library(stringr)
+library(data.table)
 ```
 
 ```{r, message = FALSE}
@@ -36,7 +37,7 @@ rt_login()
 
 quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
-quarters_period <- "y8q4" # CHANGE TO CURRENT QUARTER
+quarters_period <- "y11q1" # CHANGE TO CURRENT QUARTER
 quarter_start_date <- as.Date(quarters[quarters$period == quarters_period, ]$from)
 quarter_end_date <- as.Date(quarters[quarters$period == quarters_period, ]$to)
 ```
@@ -46,7 +47,7 @@ Get a list of objects from the Metacat SOLR index to use for calculating metrics
 ```{r}
 # make sure you set a token!
 # Cache tolerance is maximum number of days tolerable for age of cached results. If the cached results are older than the cache tolerance, a new dataset will be cached and the old cache deleted. To force a cache refresh, set tolerance to zero.
-objs <- query_objects(cache_tolerance = 1000000)
+objs <- query_objects(cache_tolerance = 0)
 ```
 
 Next we get a list of the datasets that are stored only on the ADC production filesystem, and not yet in Metacat. The function `query_filesys_objects()` runs a system bash command, and assumes a particular directory structure is used for storing the data files. It also assumes files are on a `cephfs` filesystem on `datateam`, allowing for fast counting and size estimates for millions of files, but making the whole approach non-portable but convenient for now.
@@ -64,20 +65,20 @@ This updates the list of tickets, and individual files with annual ticket inform
 
 ```{r, echo=FALSE, warning=FALSE}
 update_ticket_list()
-df <- update_annual_tix(2023) # CHANGE argument to year to update
+df <- update_annual_tix(2026) # CHANGE argument to year to update
 ```
 
 Now, calculate all of the actual metrics!
 
 ```{r}
-quarters$new_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_datasets, objects = objs)
-quarters$new_changed_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_and_changed_datasets, objects = objs)
-quarters$new_objects <- map2_chr(quarters$from, quarters$to, .f = count_data_objects, objects = objs)
-quarters$volume <- map2_chr(quarters$from, quarters$to, .f = count_volume, objects = objs)
-quarters$unique_creators <- map2_chr(quarters$from, quarters$to, .f = count_creators, objects = objs)
-quarters$downloads <- map2_chr(quarters$from, quarters$to, .f = count_downloads)
-quarters$citations <- map2_chr(quarters$from, quarters$to, .f = count_citations)
-quarters$support_interactions <- map2_chr(quarters$from, quarters$to, .f = count_support_interactions)
+quarters$new_datasets <- map2_int(quarters$from, quarters$to, .f = count_new_datasets, objects = objs)
+quarters$new_changed_datasets <- map2_int(quarters$from, quarters$to, .f = count_new_and_changed_datasets, objects = objs)
+quarters$new_objects <- map2_int(quarters$from, quarters$to, .f = count_data_objects, objects = objs)
+quarters$volume <- map2_dbl(quarters$from, quarters$to, .f = count_volume, objects = objs)
+quarters$unique_creators <- map2_dbl(quarters$from, quarters$to, .f = count_creators, objects = objs)
+# quarters$downloads <- map2_chr(quarters$from, quarters$to, .f = count_downloads)
+# quarters$citations <- map2_chr(quarters$from, quarters$to, .f = count_citations)
+quarters$support_interactions <- map2_int(quarters$from, quarters$to, .f = count_support_interactions)
 ```
 
 ```{r}
@@ -100,7 +101,7 @@ TO '/tmp/access_log.csv' WITH CSV HEADER;
 ```
 
 ```{r}
-count_unique_accessors("~/arcticreport/access_log.csv", quarter_start_date, quarter_end_date)
+count_unique_accessors("/home/sjclark/access_log.csv", quarter_start_date, quarter_end_date)
 ```
 
 ## Total Website Visitors
@@ -115,7 +116,7 @@ plot_cumulative_metric(objs, type = "metadata", metric = "count")  +
              xmin = quarter_start_date,
              xmax = quarter_end_date,
              ymin = 2500,
-             ymax = 7200,
+             ymax = 8500,
              fill = "gray",
              alpha = 0.4)+
     xlim(c(as.Date("2016-03-01"), quarter_end_date))
@@ -129,7 +130,7 @@ plot_cumulative_metric(objs, type = "data", metric = "count")  +
              xmin = quarter_start_date,
              xmax = quarter_end_date,
              ymin = 450000,
-             ymax = 50000000,
+             ymax = 120000000,
              fill = "gray",
              alpha = 0.4)+
     xlim(c(as.Date("2016-03-01"), quarter_end_date))
@@ -144,7 +145,7 @@ plot_cumulative_metric(objs, type = "data", metric = "size") +
              xmin = quarter_start_date,
              xmax = quarter_end_date,
              ymin = 0,
-             ymax = 110,
+             ymax = 400,
              fill = "gray",
              alpha = 0.4)+
     xlim(c(as.Date("2016-03-01"), quarter_end_date)) 
@@ -158,7 +159,7 @@ plot_cumulative_volume(objs) +
              xmin = quarter_start_date,
              xmax = quarter_end_date,
              ymin = 0,
-             ymax = 150,
+             ymax = 400,
              fill = "gray",
              alpha = 0.4)
 
@@ -219,7 +220,7 @@ funding <- m_q %>%
     filter(nchar(funding) == 7)
 # extract program names
 for (i in 1:nrow(funding)){
-    url <- paste0("https://api.nsf.gov/services/v1/awards.json?id=",funding$funding[i],"&printFields=fundProgramName")
+    url <- paste0("https://www.research.gov/awardapi-service/v1/awards.json?id=", funding$funding[i] ,"&printFields=fundProgramName")
 
     t <- fromJSON(url)
     if (!is.null(t$response$award$fundProgramName)){

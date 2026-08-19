@@ -28,6 +28,6 @@ count_downloads <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(Sys
 
     d <- jsonlite::fromJSON(paste0("https://logproc-stage-ucsb-1.test.dataone.org/metrics?q=%7B%20%22metricsPage%22:%20%7B%20%22total%22:%200,%20%22start%22:%200,%20%22count%22:%200%20%7D,%20%22metrics%22:%20%5B%20%22downloads%22%20%5D,%20%22filterBy%22:%20%5B%20%7B%20%22filterType%22:%20%22repository%22,%20%22values%22:%5B%22urn:node:ARCTIC%22%5D,%20%22interpretAs%22:%20%22list%22%20%7D,%20%7B%20%22filterType%22:%20%22month%22,%20%22values%22:%20%5B%20%22", from_q,"%22,%20%22",to_q,"%22%20%5D,%20%22interpretAs%22:%20%22range%22%20%7D%20%5D,%20%22groupBy%22:%20%5B%20%22months%22%20%5D%7D"))
 
-    return(sum(d$results$downloads))
+    return(as.character(sum(d$results$downloads)))
 
 }

@@ -86,19 +86,19 @@ plot_cumulative_volume <- function(objects,
         theme(legend.title = element_blank(),
               legend.position = "none")
     
-    if (adc_launch > from & adc_launch < to){
-        g <- g +
-            ggplot2::geom_vline(xintercept = as.numeric(as.Date(lubridate::ymd("20160405", tz = "America/Los_Angeles"))), color = "#146660") +
-            ggplot2::annotate(geom = "text",
-                              x =  as.Date(lubridate::ymd("20160405", tz = "America/Los_Angeles")),
-                              y = min_y,
-                              angle = 90,
-                              hjust = -0.15,#-0.075,
-                              vjust = 1.9,
-                              label = "ADC Launch (April 5, 2016)",
-                              color = "#146660",
-                              size = 3)
-    }
+    # if (adc_launch > from & adc_launch < to){
+    #     g <- g +
+    #         ggplot2::geom_vline(xintercept = as.numeric(as.Date(lubridate::ymd("20160405", tz = "America/Los_Angeles"))), color = "#146660") +
+    #         ggplot2::annotate(geom = "text",
+    #                           x =  as.Date(lubridate::ymd("20160405", tz = "America/Los_Angeles")),
+    #                           y = min_y,
+    #                           angle = 90,
+    #                           hjust = -0.15,#-0.075,
+    #                           vjust = 1.9,
+    #                           label = "ADC Launch (April 5, 2016)",
+    #                           color = "#146660",
+    #                           size = 3)
+    # }
     
     
     return(g)
