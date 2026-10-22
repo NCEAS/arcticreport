@@ -62,7 +62,6 @@ update_ticket_list <- function(path = system.file("extdata", "ticket_list.csv", 
         mutate(Created = as.POSIXct(Created, format = "%b %d %H:%M:%S %Y"))
 
     #path <- system.file("extdata", , package = "arcticreport")
-    print(paste("THIS IS THE PATH", path))
     write.csv(tics_clean, path, row.names = F)
     return(NULL)
 }
