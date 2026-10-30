@@ -59,7 +59,17 @@ plot_cumulative_volume <- function(objects,
                           y = cumsize/1e9)) +
         geom_line(size = 1.1, color="#1D244F") +
         geom_point(size=0.8, aes(y=size_kb/1e9), stroke=0, color="firebrick", alpha=0.5) +
+        geom_vline(xintercept = as.numeric(as.Date(ymd("20160405", tz = "America/Los_Angeles"))), color = "#146660") +
         geom_line(data = fortify(fit), aes(x = adc_sizes_2017$dateUploaded, y = .fitted/1e9, linetype=NULL), color="firebrick") +
+        annotate(geom = "text",
+                 x =  as.Date(ymd("20160405", tz = "America/Los_Angeles")),
+                 y = 0,#min(adc_sizes$cumsize) + 5.5,
+                 angle = 90,
+                 hjust = -0.15,#-0.075,
+                 vjust = 1.9,
+                 label = "ADC Launch (April 5, 2016)",
+                 color = "#146660",
+                 size = 3) +
         annotate(geom = "text",
                  x =  as.Date(ymd("20200630", tz = "America/Los_Angeles")),
                  y = 50,#min(adc_sizes$cumsize) + 5.5,
