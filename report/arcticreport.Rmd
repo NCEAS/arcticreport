@@ -35,7 +35,7 @@ library(data.table)
 Sys.setenv("RT_BASE_URL"="https://support.nceas.ucsb.edu/rt/")
 rt_login()
 
-quarters_file <- "../inst/extdata/quarters.csv"
+quarters_file <- system.file("extdata", "quarters.csv", package = "arcticreport")
 quarters <- read_csv(quarters_file, progress = FALSE)
 quarters_period <- "y11q1" # CHANGE TO CURRENT QUARTER
 quarter_start_date <- as.Date(quarters[quarters$period == quarters_period, ]$from)
@@ -47,7 +47,7 @@ Get a list of objects from the Metacat SOLR index to use for calculating metrics
 ```{r}
 # make sure you set a token!
 # Cache tolerance is maximum number of days tolerable for age of cached results. If the cached results are older than the cache tolerance, a new dataset will be cached and the old cache deleted. To force a cache refresh, set tolerance to zero.
-objs <- query_objects(cache_tolerance = 0)
+objs <- query_objects(cache_tolerance = 100000000)
 ```
 
 Next we get a list of the datasets that are stored only on the ADC production filesystem, and not yet in Metacat. The function `query_filesys_objects()` runs a system bash command, and assumes a particular directory structure is used for storing the data files. It also assumes files are on a `cephfs` filesystem on `datateam`, allowing for fast counting and size estimates for millions of files, but making the whole approach non-portable but convenient for now.
@@ -76,8 +76,8 @@ quarters$new_changed_datasets <- map2_int(quarters$from, quarters$to, .f = count
 quarters$new_objects <- map2_int(quarters$from, quarters$to, .f = count_data_objects, objects = objs)
 quarters$volume <- map2_dbl(quarters$from, quarters$to, .f = count_volume, objects = objs)
 quarters$unique_creators <- map2_dbl(quarters$from, quarters$to, .f = count_creators, objects = objs)
-# quarters$downloads <- map2_chr(quarters$from, quarters$to, .f = count_downloads)
-# quarters$citations <- map2_chr(quarters$from, quarters$to, .f = count_citations)
+quarters$downloads <- map2_dbl(quarters$from, quarters$to, .f = count_downloads)
+quarters$citations <- map2_dbl(quarters$from, quarters$to, .f = count_citations)
 quarters$support_interactions <- map2_int(quarters$from, quarters$to, .f = count_support_interactions)
 ```
 
